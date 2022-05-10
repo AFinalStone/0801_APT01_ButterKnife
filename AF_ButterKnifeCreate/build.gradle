@@ -1,0 +1,14 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    //这是谷歌提供的一个自动服务注册框架，需要用到
+    implementation 'com.google.auto.service:auto-service:1.0'
+    implementation project(':AF_AppLikeAnnotation')
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_7
+    targetCompatibility = JavaVersion.VERSION_1_7
+}

@@ -1,0 +1,9 @@
+def getxmlpackage(boolean x){
+    def file=new File(project.getProjectDir().getPath()+"/src/main/AndroidManifest.xml");
+    def paser = new XmlParser().parse(file)
+    return paser.@package
+}
+
+ext{
+    getpackage = this.&getxmlpackage
+}
