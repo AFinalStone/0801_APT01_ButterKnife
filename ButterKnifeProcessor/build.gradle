@@ -3,9 +3,6 @@ plugins {
 }
 
 dependencies {
-    implementation 'com.google.auto.service:auto-service:1.0-rc2'
-    // Gradle 5.0后需要再加下面这行
-     annotationProcessor  'com.google.auto.service:auto-service:1.0-rc2'
     implementation project(':ButterKnifeAnnotation')
 }
 
