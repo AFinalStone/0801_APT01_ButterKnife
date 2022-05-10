@@ -1,2 +1,3 @@
 include ':app'
-include ':AF_ButterKnifeAnnotation'
+include ':ButterKnifeAnnotation'
+include ':ButterKnifeProcessor'
