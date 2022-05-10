@@ -7,7 +7,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.afs.app.R;
 import com.afs.butterknife.annotation.BindView;
-import com.afs.utils.BindViewTools;
+import com.afs.utils.AFButterKnife;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        BindViewTools.bind(this);
+        AFButterKnife.bind(this);
         mBtnClick.setText("按钮绑定成功");
     }
 }

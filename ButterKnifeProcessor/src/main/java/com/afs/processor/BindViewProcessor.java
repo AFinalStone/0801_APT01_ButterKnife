@@ -2,6 +2,9 @@ package com.afs.processor;
 
 import com.afs.butterknife.annotation.BindView;
 
+import java.io.IOException;
+import java.io.Writer;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -9,12 +12,16 @@ import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
+import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
 
 /**
  * 注解处理器，用来生成代码的
@@ -23,8 +30,10 @@ import javax.tools.Diagnostic;
 //@AutoService(Processor.class)
 public class BindViewProcessor extends AbstractProcessor {
 
-    Filer mFiler;
-//    private Map<String, ClassCreatorProxy> mProxyMap = new HashMap<>();
+    private Filer mFiler;
+    private Messager mMessager;
+    private Elements mElementUtils;
+    private Map<String, ClassCreatorProxy> mProxyMap = new HashMap<>();
 
     //支持的版本
     @Override
@@ -45,6 +54,8 @@ public class BindViewProcessor extends AbstractProcessor {
     public synchronized void init(ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
         mFiler = processingEnv.getFiler();
+        mMessager = processingEnv.getMessager();
+        mElementUtils = processingEnv.getElementUtils();
     }
 
     /**
@@ -60,12 +71,45 @@ public class BindViewProcessor extends AbstractProcessor {
      */
     @Override
     public boolean process(Set<? extends TypeElement> set, RoundEnvironment roundEnv) {
+        mMessager.printMessage(Diagnostic.Kind.NOTE, "processing...");
         if (set.isEmpty()) {
             return false;
         }
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, "jett----------------------------" + set);
-        //任务开始
+        mProxyMap.clear();
+        //得到所有的注解
+//        TypeElement typeElement;//类
+//        ExecutableElement executableElement;//方法
+//        VariableElement variableElement;//属性
+//        TypeParameterElement typeParameterElement;//泛型参数
         Set<? extends Element> elementsAnnotatedWith = roundEnv.getElementsAnnotatedWith(BindView.class);
+        for (Element element : elementsAnnotatedWith) {
+            VariableElement variableElement = (VariableElement) element;
+            TypeElement classElement = (TypeElement) variableElement.getEnclosingElement();
+            String fullClassName = classElement.getQualifiedName().toString();
+            ClassCreatorProxy proxy = mProxyMap.get(fullClassName);
+            if (proxy == null) {
+                proxy = new ClassCreatorProxy(mElementUtils, classElement);
+                mProxyMap.put(fullClassName, proxy);
+            }
+            BindView bindAnnotation = variableElement.getAnnotation(BindView.class);
+            int id = bindAnnotation.value();
+            proxy.putElement(id, variableElement);
+        }
+
+        for (String key : mProxyMap.keySet()) {
+            ClassCreatorProxy proxyInfo = mProxyMap.get(key);
+            try {
+                mMessager.printMessage(Diagnostic.Kind.NOTE, " --> create " + proxyInfo.getProxyClassFullName());
+                JavaFileObject jfo = mFiler.createSourceFile(proxyInfo.getProxyClassFullName(), proxyInfo.getTypeElement());
+                Writer writer = jfo.openWriter();
+                writer.write(proxyInfo.generateJavaCode());
+                writer.flush();
+                writer.close();
+            } catch (IOException e) {
+                mMessager.printMessage(Diagnostic.Kind.NOTE, " --> create " + proxyInfo.getProxyClassFullName() + "error");
+            }
+        }
+        mMessager.printMessage(Diagnostic.Kind.NOTE, "process finish ...");
         return false;
     }
 }

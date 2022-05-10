@@ -9,6 +9,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.util.Elements;
 
 public class ClassCreatorProxy {
+    private String mClassName;
     private String mBindingClassName;
     private String mPackageName;
     private TypeElement mTypeElement;
@@ -18,9 +19,9 @@ public class ClassCreatorProxy {
         this.mTypeElement = classElement;
         PackageElement packageElement = elementUtils.getPackageOf(mTypeElement);
         String packageName = packageElement.getQualifiedName().toString();
-        String className = mTypeElement.getSimpleName().toString();
+        mClassName = mTypeElement.getSimpleName().toString();
         this.mPackageName = packageName;
-        this.mBindingClassName = className + "_ViewBinding";
+        this.mBindingClassName = mClassName + "_ViewBinding";
     }
 
     public void putElement(int id, VariableElement element) {
@@ -34,10 +35,13 @@ public class ClassCreatorProxy {
      */
     public String generateJavaCode() {
         StringBuilder builder = new StringBuilder();
+        //package com.afs.main
         builder.append("package ").append(mPackageName).append(";\n\n");
-        builder.append("import com.example.gavin.apt_library.*;\n");
+        //import com.afs
+        builder.append("import com.afs.utils.IAFBinder;\n");
         builder.append('\n');
-        builder.append("public class ").append(mBindingClassName);
+        //public class MainActivity_ViewBinding implements IAFBinder<MainActivity>
+        builder.append("public class ").append(mBindingClassName).append(" implements IAFBinder<").append(mClassName).append(">");
         builder.append(" {\n");
 
         generateMethods(builder);
@@ -63,6 +67,11 @@ public class ClassCreatorProxy {
         builder.append("  }\n");
     }
 
+    /**
+     * 原始的包名+原始的类名+_ViewBinding
+     *
+     * @return
+     */
     public String getProxyClassFullName() {
         return mPackageName + "." + mBindingClassName;
     }
