@@ -22,6 +22,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         AFButterKnife.bind(this);
         mBtnClick.setText("按钮绑定成功");
-        ServiceLoader<Class> serviceLoader = ServiceLoader.load(null);
+//        ServiceLoader<Class> serviceLoader = ServiceLoader.load(null);
     }
 }
